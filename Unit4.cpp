@@ -3,8 +3,8 @@
 
 #include "Unit4.h"
 #include <System.SysUtils.hpp>
-#include <Vcl.Imaging.jpeg.hpp>      // щоб JPEG нормально читався/писався
-#include <Vcl.Imaging.pngimage.hpp>  // (не обов'язково, але корисно для PNG)
+#include <Vcl.Imaging.jpeg.hpp>      
+#include <Vcl.Imaging.pngimage.hpp>  
 
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -18,22 +18,22 @@ __fastcall TForm4::TForm4(TComponent* Owner)
 
 void __fastcall TForm4::FormCreate(TObject *Sender)
 {
-    // Прив'язки (можна і в дизайнері, але тут надійно)
+    
     DataSource1->DataSet = ADOTable1;
     DBGrid1->DataSource = DataSource1;
     DBNavigator1->DataSource = DataSource1;
 
-    // Налаштування Image
+   
     Image1->Center = true;
     Image1->Proportional = true;
     Image1->Stretch = true;
     Image1->Visible = false;
 
-    // Фільтр діалогу
+
     OpenPictureDialog1->Filter =
         L"Images (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp|All files (*.*)|*.*";
 
-    // Відкриття таблиці (захист від падіння/зупинки в дебагері)
+  
     try
     {
         if (!ADOConnection1->Connected)
@@ -44,7 +44,7 @@ void __fastcall TForm4::FormCreate(TObject *Sender)
     }
     catch (const Exception &e)
     {
-        ShowMessage(L"Не вдалося підключитися до БД/таблиці:\n" + e.Message);
+        ShowMessage(L"ГЌГҐ ГўГ¤Г Г«Г®Г±Гї ГЇВіГ¤ГЄГ«ГѕГ·ГЁГІГЁГ±Гї Г¤Г® ГЃГ„/ГІГ ГЎГ«ГЁГ¶Ві:\n" + e.Message);
     }
 
     ShowPhotoFromCurrentRecord();
@@ -52,7 +52,7 @@ void __fastcall TForm4::FormCreate(TObject *Sender)
 
 void __fastcall TForm4::Button1Click(TObject *Sender)
 {
-    // Завантажити фото у Image (поки що тільки показ)
+   
     if (OpenPictureDialog1->Execute())
     {
         Image1->Picture->LoadFromFile(OpenPictureDialog1->FileName);
@@ -62,31 +62,31 @@ void __fastcall TForm4::Button1Click(TObject *Sender)
 
 void __fastcall TForm4::Button2Click(TObject *Sender)
 {
-    // Зберегти фото в поле "Фотографія"
+ 
     if (!ADOTable1->Active) return;
     if (Image1->Picture->Graphic == nullptr) return;
 
-    TField *fld = ADOTable1->FieldByName(L"Фотографія");
+    TField *fld = ADOTable1->FieldByName(L"Г”Г®ГІГ®ГЈГ°Г ГґВіГї");
     if (fld == nullptr) return;
 
     std::unique_ptr<TMemoryStream> strm(new TMemoryStream());
 
     try
     {
-        // якщо запис новий/не в режимі редагування — увійдемо в Edit
+       
         if (!(ADOTable1->State == dsEdit || ADOTable1->State == dsInsert))
             ADOTable1->Edit();
 
         Image1->Picture->Graphic->SaveToStream(strm.get());
         strm->Position = 0;
 
-        // У Access "OLE Object"/"Attachment" часто читається як BlobField, тому робимо універсально:
+        
         if (dynamic_cast<TBlobField*>(fld))
             ((TBlobField*)fld)->LoadFromStream(strm.get());
         else if (dynamic_cast<TGraphicField*>(fld))
             ((TGraphicField*)fld)->LoadFromStream(strm.get());
         else
-		throw Exception(L"Поле 'Фотографія' не є Blob/Graphic полем.");
+		throw Exception(L"ГЏГ®Г«ГҐ 'Г”Г®ГІГ®ГЈГ°Г ГґВіГї' Г­ГҐ Вє Blob/Graphic ГЇГ®Г«ГҐГ¬.");
 
 
         ADOTable1->Post();
@@ -95,7 +95,7 @@ void __fastcall TForm4::Button2Click(TObject *Sender)
     catch (const Exception &e)
     {
         try { ADOTable1->Cancel(); } catch(...) {}
-        ShowMessage(L"Помилка збереження фото:\n" + e.Message);
+        ShowMessage(L"ГЏГ®Г¬ГЁГ«ГЄГ  Г§ГЎГҐГ°ГҐГ¦ГҐГ­Г­Гї ГґГ®ГІГ®:\n" + e.Message);
     }
 }
 
@@ -117,7 +117,7 @@ void __fastcall TForm4::ShowPhotoFromCurrentRecord()
         return;
     }
 
-    TField *fld = ADOTable1->FieldByName(L"Фотографія");
+    TField *fld = ADOTable1->FieldByName(L"Г”Г®ГІГ®ГЈГ°Г ГґВіГї");
     if (fld == nullptr || fld->IsNull)
     {
         Image1->Picture->Assign(nullptr);
@@ -134,7 +134,7 @@ void __fastcall TForm4::ShowPhotoFromCurrentRecord()
         else if (dynamic_cast<TGraphicField*>(fld))
             ((TGraphicField*)fld)->SaveToStream(strm.get());
         else
-           throw Exception(L"Поле 'Фотографія' не є Blob/Graphic полем.");
+           throw Exception(L"ГЏГ®Г«ГҐ 'Г”Г®ГІГ®ГЈГ°Г ГґВіГї' Г­ГҐ Вє Blob/Graphic ГЇГ®Г«ГҐГ¬.");
 
 
         if (strm->Size < 4)
@@ -145,7 +145,7 @@ void __fastcall TForm4::ShowPhotoFromCurrentRecord()
 
         strm->Position = 0;
 
-        // Просто пробуємо завантажити — VCL сам визначить формат (jpeg.hpp/pngimage.hpp допомагають)
+   
         Image1->Picture->LoadFromStream(strm.get());
         Image1->Visible = true;
     }
@@ -155,4 +155,5 @@ void __fastcall TForm4::ShowPhotoFromCurrentRecord()
         Image1->Visible = false;
     }
 }
+
 
